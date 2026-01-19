@@ -92,5 +92,3 @@ Get the Full Power of KORVEX:
 ⏱️ We usually reply within 24 hours to discuss licensing and integration.
 
 © 2026 KORVEX AI — The Future of Automated High-Performance Video
-
-
