@@ -1,0 +1,36 @@
+KORVEX COMMERCIAL LICENSE
+
+Copyright (c) 2026 Korvex
+
+This software ("Korvex") is licensed, not sold.
+
+By purchasing or using the Commercial Edition, you agree to the following:
+
+1. You are granted a non-exclusive, non-transferable license to:
+   - Use Korvex in commercial products
+   - Use Korvex in SaaS, APIs, or services
+   - Modify Korvex for internal or commercial use
+   - Keep your modifications private
+
+2. You MAY:
+   - Sell services using Korvex
+   - Embed Korvex in closed-source systems
+   - Use Korvex without publishing your code
+
+3. You MAY NOT:
+   - Resell Korvex itself as a product
+   - Redistribute Korvex source or binary to third parties
+   - Claim Korvex as your own creation
+
+4. Support:
+   - This license does not include support unless separately agreed.
+
+5. Warranty:
+   - Korvex is provided "AS IS", without warranty of any kind.
+   - The author is not responsible for damages, data loss, or business loss.
+
+6. Termination:
+   - This license is terminated if you break its terms.
+
+For commercial licensing, contact:
+contactkorvex.ai@gmail.com
