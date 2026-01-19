@@ -1,46 +1,44 @@
-﻿# 🎬 KORVEX Video Production Engine v1.0
+﻿🎬 KORVEX Video Production Engine v1.0
 
-![Rust](https://img.shields.io/badge/language-Rust-orange.svg) 
-![License](https://img.shields.io/badge/license-Dual--Licensed-blue.svg)
+KORVEX is an industrial-grade, asynchronous video automation factory.
+It transforms text and images into high-quality video content at extreme speeds by leveraging the raw power of Rust and FFmpeg.
 
-**KORVEX** is an industrial-grade, asynchronous video automation factory.  
-It transforms text and images into high-quality video content at extreme speed using **Rust** and **FFmpeg**.
+🚀 Built for Scale
 
-KORVEX is built to be used in:
-- SaaS platforms  
-- Automation pipelines  
-- Content factories  
-- Marketing systems  
+SaaS Platforms – Ideal backend for video editing and generation apps
 
----
+Automation Pipelines – Seamlessly integrate video into existing workflows
 
-## 🔥 Key Performance Metrics
+Content Factories – Mass-produce high-quality assets for social media
 
-- **Parallel Processing** – Multiple segments rendered simultaneously  
-- **Ultra-Low Latency** – Optimized for real-time video generation  
-- **24/7 Reliability** – Memory-safe, crash-resistant core  
+Marketing Systems – Dynamically generate personalized ads at scale
 
----
+🔥 Key Performance Metrics
 
-## 💎 Edition Comparison
+Parallel Processing – High-concurrency rendering with simultaneous segments
 
-| Feature | Community (Demo) | Commercial (Full) |
-|------|------------------|-------------------|
-| Max Segments | 1 Segment | Unlimited |
-| Watermark | Forced | None |
-| Subtitles | Disabled / Basic | Full Control |
-| Commercial Use | ❌ Not Allowed | ✅ Allowed |
-| SaaS / API Use | ❌ Not Allowed | ✅ Allowed |
+Ultra-Low Latency – Optimized for near real-time video synthesis
 
-> Community Edition is a **demo only**.  
-> If you want to make money with KORVEX, you must use the Commercial Edition.
+24/7 Reliability – Memory-safe, crash-resistant core for nonstop uptime
 
----
+💎 Edition Comparison
+Feature	Community (Demo)	Commercial (Full)
+Max Segments	1 Segment	Unlimited
+Watermark	Forced Overlay	None
+Subtitles	Disabled / Basic	Full Control
+Commercial Use	❌ Not Allowed	✅ Allowed
+SaaS / API Use	❌ Not Allowed	✅ Allowed
 
-## 🛰️ Quick API Example
+Note:
+Community Edition is for evaluation only.
+To monetize services powered by KORVEX, the Commercial Edition is required.
 
-```json
+🛰️ Quick API Example
+
+Generate a professional video segment with a simple POST request:
+
 POST /api/v1/job
+
 {
   "output_name": "marketing_clip",
   "resolution": "1280x720",
@@ -53,27 +51,46 @@ POST /api/v1/job
     }
   ]
 }
-📜 Licensing
-KORVEX is dual-licensed:
 
-Community Edition – Demo / Evaluation only
+🎯 Use Cases
 
-Commercial Edition – Paid license for business use
+🎬 Ad Factories – Generate thousands of hyper-personalized video ads in minutes
 
-If you:
+📰 News Automation – Turn articles, feeds, or tweets into video reports
 
-sell services,
+📱 Social Media Pipelines – Auto-generate Shorts, Reels, TikToks
 
-run SaaS,
+⚙️ SaaS Backends – Rendering core for browser-based video editors
 
-embed in products,
+⚖️ Licenses & Compliance
 
-make money,
+KORVEX uses a dual-licensing model:
 
-you must use the Commercial License.
+Community Edition (Demo)
 
-Contact:
-📧 contactkorvex.ai@gmail.com
+Evaluation and non-commercial testing only
 
+See: LICENSE_COMMUNITY.txt
+
+Commercial Edition (Full)
+
+Required for any profit-generating activity
+
+SaaS, APIs, paid services, redistribution
+
+See: LICENSE_COMMERCIAL.txt
+
+💰 Ready to Scale?
+
+If your goal is to monetize content or services powered by KORVEX,
+you MUST acquire a Commercial License.
+
+Get the Full Power of KORVEX:
+
+📩 Contact: contactkorvex.ai@gmail.com
+
+⏱️ We usually reply within 24 hours to discuss licensing and integration.
+
+© 2026 KORVEX AI — The Future of Automated High-Performance Video
 
 
