@@ -205,7 +205,7 @@ impl VideoEngine {
             .status()
             .map_err(|e| e.to_string())?;
 
-        if status.successs() {
+        if status.success() {
             let mut s = state.lock().await;
             s.status.segments_done += 1;
             s.status.progress = (s.status.segments_done as f32 / s.status.total_segments as f32) * 100.0;
@@ -239,7 +239,7 @@ impl VideoEngine {
             .status()
             .map_err(|e| e.to_string())?;
 
-        if status.successs() {
+        if status.success() {
             let mut s = state.lock().await;
             s.status.status = "COMPLETED".to_string();
             s.status.output_path = Some(final_path);
@@ -292,3 +292,4 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
+
