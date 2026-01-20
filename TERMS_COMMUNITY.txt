@@ -1,0 +1,7 @@
+﻿KORVEX COMMUNITY LICENSE (NON-COMMERCIAL)
+Copyright (c) 2026 Korvex
+
+1. LICENSE GRANT: This edition is granted solely for personal, educational, or evaluative purposes.
+2. TECHNICAL LIMITS: Single-thread serial rendering (1 segment) with a mandatory "KORVEX DEMO" watermark.
+3. RESTRICTIONS: Commercial use, SaaS deployment, and API integration are strictly prohibited.
+4. UPGRADE PATH: For production-grade performance and watermark removal, a BASIC or GOLD license is required.
