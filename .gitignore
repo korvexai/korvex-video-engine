@@ -1,0 +1,5 @@
+﻿video_output/
+temp/
+target/
+*.mp4
+*.jpg

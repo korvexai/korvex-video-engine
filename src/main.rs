@@ -1,4 +1,4 @@
-use std::sync::Arc;
+﻿use std::sync::Arc;
 use tokio::sync::Mutex;
 use actix_web::{web, App, HttpServer, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -6,9 +6,9 @@ use std::collections::HashMap;
 use uuid::Uuid;
 use std::process::{Command, Stdio};
 use std::fs;
+use futures::future::join_all; // Required for simultaneous rendering
 
 // === COMPILATION EDITION LOGIC ===
-// Ensures only one EDITION constant is active at a time
 #[cfg(all(feature = "community", not(feature = "commercial")))]
 const EDITION: &str = "COMMUNITY (Limited)";
 
@@ -25,7 +25,6 @@ fn has_watermark() -> bool {
 }
 
 // === CONFIG ===
-const MAX_CONCURRENT_SEGMENTS: usize = 4;
 const OUTPUT_DIR: &str = "./video_output";
 const TEMP_DIR: &str = "./temp";
 
@@ -83,10 +82,9 @@ impl VideoEngine {
     }
 
     async fn create_job(&self, mut job: VideoJob) -> Result<JobStatus, String> {
-        // ENFORCE EDITION LIMITS
         if job.segments.len() > get_max_segments() {
             return Err(format!(
-                "Edition Limit: {} version is restricted to {} segment(s). Please upgrade to Commercial.",
+                "Edition Limit: {} version is restricted to {} segment(s). Please upgrade.",
                 EDITION, get_max_segments()
             ));
         }
@@ -120,27 +118,50 @@ impl VideoEngine {
         Ok(status)
     }
 
+    // --- PARALLEL RENDERING LOGIC (PLATINUM UPGRADE) ---
     async fn process_full_video(self, job_id: String, state: Arc<Mutex<JobState>>) {
         let segments = { state.lock().await.job.segments.clone() };
-        let mut success = true;
-
+        
+        // 1. Launch all segments in parallel
+        let mut render_tasks = Vec::new();
         for segment in segments {
-            if let Err(e) = self.render_segment(&job_id, &segment, &state).await {
-                state.lock().await.status.error = Some(e);
-                state.lock().await.status.status = "FAILED".into();
-                success = false;
-                break;
+            let engine_ref = self.clone();
+            let job_id_ref = job_id.clone();
+            let state_ref = state.clone();
+            
+            render_tasks.push(tokio::spawn(async move {
+                engine_ref.render_segment(&job_id_ref, &segment, &state_ref).await
+            }));
+        }
+
+        // 2. Wait for results from all tasks simultaneously
+        let results = join_all(render_tasks).await;
+        let mut successs = true;
+        
+        for res in results {
+            match res {
+                Ok(Err(e)) => { // FFmpeg Error
+                    state.lock().await.status.error = Some(e);
+                    state.lock().await.status.status = "FAILED".into();
+                    successs = false;
+                }
+                Err(_) => { // Thread Error (Panic)
+                    state.lock().await.status.status = "FAILED".into();
+                    successs = false;
+                }
+                _ => {}
             }
         }
 
-        if success {
+        // 3. If all pieces are ready, join them
+        if successs {
             if let Err(e) = self.concat_and_finalize(&job_id, &state).await {
-                state.lock().await.status.error = Some(e);
-                state.lock().await.status.status = "FAILED".into();
+                let mut s = state.lock().await;
+                s.status.error = Some(e);
+                s.status.status = "FAILED".into();
             }
         }
 
-        // AUTO-CLEANUP
         let _ = fs::remove_dir_all(format!("{}/{}", TEMP_DIR, job_id));
         ACTIVE_JOBS.fetch_sub(1, std::sync::atomic::Ordering::Relaxed);
     }
@@ -157,7 +178,6 @@ impl VideoEngine {
 
         let mut filters = format!("scale={},fps={}", res, fps);
 
-        // 1. COMMERCIAL FEATURE: Subtitles
         if cfg!(feature = "commercial") {
             let drawtext = format!(
                 ",drawtext=text='{}':fontcolor=white:fontsize=40:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=h-100",
@@ -166,7 +186,6 @@ impl VideoEngine {
             filters.push_str(&drawtext);
         }
 
-        // 2. COMMUNITY FEATURE: Watermark
         if has_watermark() {
             let watermark = ",drawtext=text='KORVEX ENGINE DEMO - UPGRADE NOW':fontcolor=white@0.2:fontsize=50:x=(w-text_w)/2:y=(h-text_h)/2";
             filters.push_str(watermark);
@@ -186,7 +205,7 @@ impl VideoEngine {
             .status()
             .map_err(|e| e.to_string())?;
 
-        if status.success() {
+        if status.successs() {
             let mut s = state.lock().await;
             s.status.segments_done += 1;
             s.status.progress = (s.status.segments_done as f32 / s.status.total_segments as f32) * 100.0;
@@ -220,7 +239,7 @@ impl VideoEngine {
             .status()
             .map_err(|e| e.to_string())?;
 
-        if status.success() {
+        if status.successs() {
             let mut s = state.lock().await;
             s.status.status = "COMPLETED".to_string();
             s.status.output_path = Some(final_path);
@@ -260,12 +279,6 @@ async fn status_handler() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("-------------------------------------------");
-    println!("🚀 KORVEX VIDEO PRODUCTION FACTORY");
-    println!("🛡️  EDITION: {}", EDITION);
-    println!("🌐 API: http://localhost:8080");
-    println!("-------------------------------------------");
-
     let engine = web::Data::new(VideoEngine::new());
     
     HttpServer::new(move || {
