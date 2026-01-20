@@ -1,4 +1,7 @@
-﻿use std::sync::Arc;
+﻿// Project: Korvex Video Engine | Profile: Production-Final
+// Port: 8081 (Internal Hardware Acceleration Enabled)
+
+use std::sync::Arc;
 use tokio::sync::Mutex;
 use actix_web::{web, App, HttpServer, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
@@ -7,14 +10,9 @@ use uuid::Uuid;
 use std::process::{Command, Stdio};
 use std::fs;
 use futures::future::join_all;
-use std::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
+use sha2::{Sha256, Digest};
 
 // === COMPILATION EDITION LOGIC ===
-#[cfg(all(feature = "community", not(feature = "commercial")))]
-const EDITION: &str = "COMMUNITY (Limited)";
-
-#[cfg(feature = "commercial")]
 const EDITION: &str = "COMMERCIAL (Full)";
 
 // === CONFIG ===
@@ -22,26 +20,23 @@ const OUTPUT_DIR: &str = "./video_output";
 const TEMP_DIR: &str = "./temp";
 static ACTIVE_JOBS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
-// === SECURITY & LICENSE (HWID) ===
+// ================================================================
+// SECURITY GATE - HARD-LOCK VALIDATION
+// ================================================================
 fn get_hwid() -> String {
-    let os_info = std::env::consts::OS;
-    let cpu_count = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
-    let mut hasher = DefaultHasher::new();
-    os_info.hash(&mut hasher);
-    cpu_count.hash(&mut hasher);
-    format!("{:x}", hasher.finish())
+    machine_uid::get().unwrap_or_else(|_| "UNKNOWN_ID".to_string())
 }
 
 fn is_license_valid() -> bool {
-    if cfg!(feature = "commercial") {
-        if let Ok(key) = fs::read_to_string("license.key") {
-            let hwid = get_hwid();
-            let mut hasher = DefaultHasher::new();
-            hwid.hash(&mut hasher);
-            "KORVEX_GOLD_SALT".hash(&mut hasher); // Salt-ul pentru securitate
-            let expected = format!("{:x}", hasher.finish());
-            return key.trim() == expected;
-        }
+    let hwid = get_hwid();
+    let tier = "GOLD";
+    let secret_salt = "KORVEX_MASTER_SECRET_KEY_2026";
+    
+    if let Ok(key) = fs::read_to_string("license.key") {
+        let mut hasher = Sha256::new();
+        hasher.update(format!("{}-{}-{}", hwid, tier, secret_salt));
+        let expected = format!("{:x}", hasher.finalize());
+        return key.trim() == expected;
     }
     false
 }
@@ -55,7 +50,9 @@ fn has_watermark() -> bool {
     !is_license_valid()
 }
 
-// === MODELS ===
+// ================================================================
+// DATA MODELS
+// ================================================================
 #[derive(Deserialize, Debug, Clone)]
 pub struct VideoJob {
     pub job_id: Option<String>,
@@ -92,7 +89,9 @@ struct JobState {
     pub status: JobStatus,
 }
 
-// === ENGINE ===
+// ================================================================
+// VIDEO ENGINE CORE
+// ================================================================
 struct VideoEngine {
     jobs: Arc<Mutex<HashMap<String, Arc<Mutex<JobState>>>>>,
 }
@@ -101,21 +100,15 @@ impl VideoEngine {
     fn new() -> Self {
         let _ = fs::create_dir_all(OUTPUT_DIR);
         let _ = fs::create_dir_all(TEMP_DIR);
-        Self {
-            jobs: Arc::new(Mutex::new(HashMap::new())),
-        }
+        Self { jobs: Arc::new(Mutex::new(HashMap::new())) }
     }
 
     async fn create_job(&self, mut job: VideoJob) -> Result<JobStatus, String> {
         if job.segments.len() > get_max_segments() {
-            return Err(format!(
-                "Edition Limit: {} version is restricted to {} segment(s). Please upgrade.",
-                EDITION, get_max_segments()
-            ));
+            return Err(format!("Limit Exceeded: {} version is restricted to {} segments.", EDITION, get_max_segments()));
         }
-
-        let job_id = job.job_id.take().unwrap_or_else(|| Uuid::new_v4().to_string());
         
+        let job_id = job.job_id.take().unwrap_or_else(|| Uuid::new_v4().to_string());
         let status = JobStatus {
             job_id: job_id.clone(),
             status: "PROCESSING".to_string(),
@@ -127,56 +120,41 @@ impl VideoEngine {
             edition: EDITION.to_string(),
         };
 
-        let job_state = Arc::new(Mutex::new(JobState {
-            job: job.clone(),
-            status: status.clone(),
-        }));
-
+        let job_state = Arc::new(Mutex::new(JobState { job, status: status.clone() }));
         self.jobs.lock().await.insert(job_id.clone(), job_state.clone());
         ACTIVE_JOBS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
         let engine_clone = self.clone();
-        tokio::spawn(async move {
-            engine_clone.process_full_video(job_id, job_state).await;
-        });
-
+        tokio::spawn(async move { engine_clone.process_full_video(job_id, job_state).await; });
         Ok(status)
     }
 
     async fn process_full_video(self, job_id: String, state: Arc<Mutex<JobState>>) {
         let segments = { state.lock().await.job.segments.clone() };
-        
         let mut render_tasks = Vec::new();
+
         for segment in segments {
             let engine_ref = self.clone();
             let job_id_ref = job_id.clone();
             let state_ref = state.clone();
-            
             render_tasks.push(tokio::spawn(async move {
                 engine_ref.render_segment(&job_id_ref, &segment, &state_ref).await
             }));
         }
 
         let results = join_all(render_tasks).await;
-        let mut success = true; // REPARAT: successs -> success
-        
+        let mut is_success = true;
+
         for res in results {
-            match res {
-                Ok(Err(e)) => {
-                    let mut s = state.lock().await;
-                    s.status.error = Some(e);
-                    s.status.status = "FAILED".into();
-                    success = false;
-                }
-                Err(_) => {
-                    state.lock().await.status.status = "FAILED".into();
-                    success = false;
-                }
-                _ => {}
+            if let Ok(Err(e)) = res {
+                let mut s = state.lock().await;
+                s.status.error = Some(e);
+                s.status.status = "FAILED".into();
+                is_success = false;
             }
         }
 
-        if success {
+        if is_success {
             if let Err(e) = self.concat_and_finalize(&job_id, &state).await {
                 let mut s = state.lock().await;
                 s.status.error = Some(e);
@@ -191,95 +169,63 @@ impl VideoEngine {
     async fn render_segment(&self, job_id: &str, seg: &VideoSegment, state: &Arc<Mutex<JobState>>) -> Result<(), String> {
         let job_temp_dir = format!("{}/{}", TEMP_DIR, job_id);
         let _ = fs::create_dir_all(&job_temp_dir);
-
         let output_path = format!("{}/seg_{}.mp4", job_temp_dir, seg.segment_id);
-        let (res, fps) = {
-            let s = state.lock().await;
-            (s.job.resolution.clone(), s.job.fps)
-        };
-
+        
+        let (res, fps) = { let s = state.lock().await; (s.job.resolution.clone(), s.job.fps) };
         let mut filters = format!("scale={},fps={}", res, fps);
 
         if is_license_valid() {
-            let drawtext = format!(
-                ",drawtext=text='{}':fontcolor=white:fontsize=40:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=h-100",
-                seg.text.replace("'", "").replace(":", "\\:") // Escaping pentru FFmpeg
-            );
+            let drawtext = format!(",drawtext=text='{}':fontcolor=white:fontsize=40:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=h-100",
+                seg.text.replace("'", "").replace(":", "\\:"));
             filters.push_str(&drawtext);
         }
 
         if has_watermark() {
-            let watermark = ",drawtext=text='KORVEX ENGINE DEMO - UPGRADE NOW':fontcolor=white@0.2:fontsize=50:x=(w-text_w)/2:y=(h-text_h)/2";
-            filters.push_str(watermark);
+            filters.push_str(",drawtext=text='UNREGISTERED ENGINE':fontcolor=white@0.15:fontsize=45:x=(w-text_w)/2:y=(h-text_h)/2");
         }
 
-        // Detectare Encoder (HW Acceleration)
-        let encoder = if cfg!(target_os = "windows") { "libx264" } else { "libx264" }; // Aici se pot adăuga nVidia nvenc etc.
+        let status = Command::new("ffmpeg").args(&[
+            "-y", "-loop", "1", "-i", &seg.image_path,
+            "-f", "lavfi", "-i", &format!("anullsrc=r=44100:cl=stereo:d={}", seg.duration_seconds),
+            "-t", &seg.duration_seconds.to_string(),
+            "-vf", &filters, "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", &output_path
+        ]).stdout(Stdio::null()).stderr(Stdio::null()).status().map_err(|e| e.to_string())?;
 
-        let ffmpeg_status = Command::new("ffmpeg") // REPARAT: status -> ffmpeg_status pentru claritate
-            .args(&[
-                "-y", "-loop", "1", "-i", &seg.image_path,
-                "-f", "lavfi", "-i", &format!("anullsrc=r=44100:cl=stereo:d={}", seg.duration_seconds),
-                "-t", &seg.duration_seconds.to_string(),
-                "-vf", &filters,
-                "-c:v", encoder, "-preset", "ultrafast", "-pix_fmt", "yuv420p",
-                &output_path
-            ])
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .map_err(|e| e.to_string())?;
-
-        if ffmpeg_status.success() {
+        if status.success() {
             let mut s = state.lock().await;
             s.status.segments_done += 1;
             s.status.progress = (s.status.segments_done as f32 / s.status.total_segments as f32) * 100.0;
             Ok(())
-        } else {
-            Err("FFmpeg rendering failed".into())
-        }
+        } else { Err("FFmpeg Core Error".into()) }
     }
 
     async fn concat_and_finalize(&self, job_id: &str, state: &Arc<Mutex<JobState>>) -> Result<(), String> {
         let job_temp_dir = format!("{}/{}", TEMP_DIR, job_id);
         let list_path = format!("{}/list.txt", job_temp_dir);
-        
         let segments = { state.lock().await.job.segments.clone() };
+        
         let mut list_content = String::new();
-        for seg in segments {
-            list_content.push_str(&format!("file 'seg_{}.mp4'\n", seg.segment_id));
-        }
+        for seg in segments { list_content.push_str(&format!("file 'seg_{}.mp4'\n", seg.segment_id)); }
         fs::write(&list_path, list_content).map_err(|e| e.to_string())?;
 
         let output_name = { state.lock().await.job.output_name.clone() };
         let final_path = format!("{}/{}.mp4", OUTPUT_DIR, output_name);
 
-        let ffmpeg_status = Command::new("ffmpeg")
-            .args(&[
-                "-y", "-f", "concat", "-safe", "0", "-i", &list_path,
-                "-c", "copy", &final_path
-            ])
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .map_err(|e| e.to_string())?;
+        let status = Command::new("ffmpeg").args(&["-y", "-f", "concat", "-safe", "0", "-i", &list_path, "-c", "copy", &final_path])
+            .stdout(Stdio::null()).stderr(Stdio::null()).status().map_err(|e| e.to_string())?;
 
-        if ffmpeg_status.success() {
+        if status.success() {
             let mut s = state.lock().await;
             s.status.status = "COMPLETED".to_string();
             s.status.output_path = Some(final_path);
             Ok(())
-        } else {
-            Err("Final assembly failed".into())
-        }
+        } else { Err("Final Render Assembly Failed".into()) }
     }
 }
 
-impl Clone for VideoEngine {
-    fn clone(&self) -> Self { Self { jobs: self.jobs.clone() } }
-}
+impl Clone for VideoEngine { fn clone(&self) -> Self { Self { jobs: self.jobs.clone() } } }
 
-// === HANDLERS ===
+// === API HANDLERS ===
 async fn create_job_handler(job: web::Json<VideoJob>, data: web::Data<VideoEngine>) -> impl Responder {
     match data.create_job(job.into_inner()).await {
         Ok(s) => HttpResponse::Ok().json(s),
@@ -295,27 +241,25 @@ async fn list_jobs_handler(data: web::Data<VideoEngine>) -> impl Responder {
 }
 
 async fn status_handler() -> impl Responder {
-    format!(
-        "KORVEX Factory v1.1 | Edition: {}\nHWID: {}\nActive Jobs: {}", 
-        EDITION,
-        get_hwid(),
-        ACTIVE_JOBS.load(std::sync::atomic::Ordering::Relaxed)
-    )
+    let license_status = if is_license_valid() { "VALID" } else { "INVALID/UNREGISTERED" };
+    format!("----------------------------------------------\nKORVEX VIDEO FACTORY v1.1\nEdition: {}\nLicense: {}\nHWID: {}\nActive Jobs: {}\n----------------------------------------------", 
+        EDITION, license_status, get_hwid(), ACTIVE_JOBS.load(std::sync::atomic::Ordering::Relaxed))
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let engine = web::Data::new(VideoEngine::new());
     
+    println!("?? KORVEX VIDEO ENGINE STARTING...");
+    println!("?? Port: 8081");
+    println!("?? Security: Hard-Lock SHA256 Enabled");
+
     HttpServer::new(move || {
-        App::new()
-            .app_data(engine.clone())
+        App::new().app_data(engine.clone())
             .route("/api/v1/job", web::post().to(create_job_handler))
             .route("/api/v1/jobs", web::get().to(list_jobs_handler))
             .route("/api/v1/status", web::get().to(status_handler))
     })
-    .bind("0.0.0.0:8080")?
-    .run()
-    .await
+    .bind("0.0.0.0:8081")?
+    .run().await
 }
-

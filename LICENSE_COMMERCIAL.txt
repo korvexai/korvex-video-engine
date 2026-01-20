@@ -1,36 +1,42 @@
 KORVEX COMMERCIAL LICENSE
+Copyright (c) 2026 Korvex | All Rights Reserved
 
-Copyright (c) 2026 Korvex
+This software ("Korvex Video Engine") is licensed, not sold. By purchasing or using the Commercial Edition via GitHub Sponsors, you agree to the following:
 
-This software ("Korvex") is licensed, not sold.
+1. LICENSE TIERS & SCOPE
 
-By purchasing or using the Commercial Edition, you agree to the following:
+STANDARD ($199/Year): Single-instance production use. Standard parallel rendering.
 
-1. You are granted a non-exclusive, non-transferable license to:
-   - Use Korvex in commercial products
-   - Use Korvex in SaaS, APIs, or services
-   - Modify Korvex for internal or commercial use
-   - Keep your modifications private
+GOLD PLATINUM ($499/Year): Multi-instance (up to 5), full SaaS/API rights, 8-segment parallel rendering.
 
-2. You MAY:
-   - Sell services using Korvex
-   - Embed Korvex in closed-source systems
-   - Use Korvex without publishing your code
+ENTERPRISE ($1000/Year): Unlimited global deployment, custom hardware tuning, and priority support.
 
-3. You MAY NOT:
-   - Resell Korvex itself as a product
-   - Redistribute Korvex source or binary to third parties
-   - Claim Korvex as your own creation
+2. GRANT OF LICENSE You are granted a non-exclusive, non-transferable license to:
 
-4. Support:
-   - This license does not include support unless separately agreed.
+Use Korvex in commercial products/services corresponding to your purchased tier.
 
-5. Warranty:
-   - Korvex is provided "AS IS", without warranty of any kind.
-   - The author is not responsible for damages, data loss, or business loss.
+Modify Korvex for internal use (modifications must remain private).
 
-6. Termination:
-   - This license is terminated if you break its terms.
+Embed Korvex in closed-source systems.
 
-For commercial licensing, contact:
-contactkorvex.ai@gmail.com
+3. RESTRICTIONS You MAY NOT:
+
+Resell the Korvex Engine core as a standalone product.
+
+Redistribute Korvex source code or binaries to third parties.
+
+Claim Korvex as your own creation.
+
+4. DIGITAL DELIVERY & ACTIVATION (HWID)
+
+Hardware Lock: This software is cryptographically locked to a unique Machine ID (HWID).
+
+Final Sale: Due to the nature of digital software and HWID activation, all sales are final.
+
+No Refunds: Once a license key is generated for a specific Machine ID, no refunds will be issued.
+
+5. WARRANTY & LIABILITY Korvex is provided "AS IS", without warranty of any kind. The author is not responsible for damages, data loss, or business loss resulting from the use of this software.
+
+6. TERMINATION This license is automatically terminated if you violate any of its terms or fail to maintain an active sponsorship tier.
+
+For activation, send your HWID to: contactkorvex.ai@gmail.com Official Portal: github.com/sponsors/korvexai

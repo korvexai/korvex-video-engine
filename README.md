@@ -1,56 +1,65 @@
-﻿#  KORVEX Video Production Engine v1.1.0 [GOLD]
+﻿🎬 KORVEX Video Production Engine v1.1.0 [GOLD]
 
-![Render Speed](https://img.shields.io/badge/Render_Speed-Ultra--Fast-blueviolet?style=for-the-badge)
-![Language](https://img.shields.io/badge/Rust-100%25-orange?style=for-the-badge&logo=rust)
-![Status](https://img.shields.io/badge/Release-GOLD-gold?style=for-the-badge)
+High-performance asynchronous video automation factory built with Rust.
+Optimized for industrial-scale content production using parallel FFmpeg processing pipelines.
+Part of the Hyper-V8 Ecosystem.
 
-High-performance asynchronous video automation factory built with Rust. Optimized for industrial-scale content production using parallel FFmpeg processing pipelines.
+⚡ Performance Benchmarks (Verified Platinum)
+Metric	Result	Status
+Parallel Rendering	8 Segments Simultaneously	✅ Verified
+Throughput	~0.28s per output second	✅ Pro-Grade
+Concurrency Logic	Tokio Multi-threaded Runtime	✅ Optimized
+Memory Efficiency	< 150MB stable under load	✅ Passed
+💎 Commercial Licensing (Universal Gateway)
 
-###  Performance Benchmarks (Verified Platinum)
-| Metric | Result | Status |
-| :--- | :--- | :--- |
-| **Parallel Rendering** | 8 Segments Simultaneously | Verified |
-| **Throughput** | ~0.28s per output second | Pro-Grade |
-| **Concurrency Logic** | Tokio Multi-threaded Runtime | Optimized |
-| **Memory Efficiency** | < 150MB stable under load | Passed |
+To unlock the full power of the KORVEX Engine
+(8× Speed, No Watermarks), select your license tier:
 
-###  Key Features
-- **Asynchronous stitching:** Zero-wait segment merging using utures::join_all.
-- **Hardware Acceleration:** Automatic detection of NVENC (NVIDIA) and QuickSync.
-- **Dual-Edition Gate:** Hard-coded distinction between Community and Commercial builds.
-- **Audit Ready:** Full English technical documentation and performance logs.
+🛡️ BASIC LICENSE — $199 / Year
 
-###  Project Structure
-- **/src**: Core Rust logic and parallel rendering orchestration.
-- **/ffmpeg-8.0.1**: Optimized binaries for industrial video processing.
-- **/target/release**: Production-ready executables.
+Single-instance production
 
-###  Licensing
-This is a **Commercial-Grade** product. The Commercial edition provides unlimited rendering segments and removal of all watermarks.
+2 Parallel Segments
 
-Contact: contactkorvex.ai@gmail.com
-2026 Korvex AI | Part of the Hyper-V8 Ecosystem
+No watermarks
 
+👑 GOLD PLATINUM — $499 / Year
 
-##  Pricing & Editions (Official 2026 Plans)
+Full Infrastructure Rights
 
-| Feature | Community | Basic | Gold (Platinum) | Enterprise |
-| :--- | :--- | :--- | :--- | :--- |
-| **Annual Price** | **FREE** | **$199 / Year** | **$499 / Year** | **Request Quote** |
-| **Parallel Render**| 1 (Serial) |  2 Segments |  8 Segments |  Unlimited |
-| **Watermark** |  Forced |  None |  None |  None |
-| **API/SaaS Rights**|  No |  No |  Full Rights |  Full Rights |
-| **Rendering Speed**| Standard | High-Performance | Ultra-Fast | Custom Hardware |
-| **Forensic DNA** | Basic | Standard | Advanced | Full Audit Trail |
-| **Support** | Community | Email Support | Priority Email | 24/7 Dedicated |
+8 Parallel Segments
 
-###  Upgrade Your Workflow
-For commercial licensing and high-volume enterprise onboarding: **contactkorvex.ai@gmail.com**
+SaaS & API Deployment
 
-### 🔑 Instant Activation (Platinum & Gold)
-This engine uses **Hardware-Locked Licensing** to ensure maximum security:
-1. Run the engine once to see your **Machine ID (HWID)**.
-2. Complete the purchase and provide your HWID.
-3. You will receive a `license.key` file.
-4. Place it in the root folder to instantly unlock **Parallel Rendering**.
+🏢 ENTERPRISE SUITE — $1000 / Year
 
+Unlimited instances
+
+Full KORVEX AI Portfolio access
+
+Priority 24/7 Support
+
+🔑 Instant Activation Process
+
+This engine uses Hardware-Locked (HWID) Security for maximum IP protection:
+
+Get your ID – Run the engine to see your unique Machine ID (HWID).
+
+Purchase – Choose a tier from our Official Sponsorship Page.
+
+Send HWID – Email your ID and Project Name to:
+contactkorvex.ai@gmail.com
+
+Unlock – Place the received license.key in the root folder to instantly activate GOLD features.
+
+🛠️ Key Features
+
+Asynchronous stitching – Zero-wait segment merging using futures::join_all
+
+Hardware Acceleration – Automatic detection of NVENC (NVIDIA) and QuickSync
+
+Dual-Edition Gate – Hard-coded distinction between Community and Commercial builds
+
+Project Structure – Optimized binaries in /ffmpeg-8.0.1 with /target/release executables
+
+© 2026 KORVEX AI | Industrial-Grade Automation Infrastructure

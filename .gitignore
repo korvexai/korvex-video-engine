@@ -1,8 +1,6 @@
-﻿/target/
-/temp/
-/video_output/
-*.mp4
-*.exe
+﻿/target
+/temp
+/video_output
+license.key
 *.pdb
-*.jpg
-.git/index.lock
+*.exe
