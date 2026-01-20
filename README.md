@@ -31,11 +31,12 @@ This is a **Commercial-Grade** product. The Commercial edition provides unlimite
 Contact: contactkorvex.ai@gmail.com
 2026 Korvex AI | Part of the Hyper-V8 Ecosystem
 
+
 ##  Pricing & Editions (Official 2026 Plans)
 
 | Feature | Community | Basic | Gold (Platinum) | Enterprise |
 | :--- | :--- | :--- | :--- | :--- |
-| **Annual Price** | **FREE** | ** / Year** | ** / Year** | **Request Quote** |
+| **Annual Price** | **FREE** | **$199 / Year** | **$499 / Year** | **Request Quote** |
 | **Parallel Render**| 1 (Serial) |  2 Segments |  8 Segments |  Unlimited |
 | **Watermark** |  Forced |  None |  None |  None |
 | **API/SaaS Rights**|  No |  No |  Full Rights |  Full Rights |

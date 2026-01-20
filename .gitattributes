@@ -1,4 +1,4 @@
-ffmpeg-8.0.1/* linguist-vendored
-target/* linguist-vendored
-*.exe linguist-generated
-*.jpg linguist-generated
+ffmpeg-8.0.1/** linguist-vendored
+target/** linguist-vendored
+src/ultra_core/* linguist-detectable
+*.rs linguist-detectable
