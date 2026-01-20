@@ -1,0 +1,26 @@
+﻿============================================================
+KORVEX VIDEO ENGINE - PLATINUM INTEGRITY REPORT
+Edition: Commercial v1.1.0
+Status: Parallel Rendering Enabled
+============================================================
+ [SUCCESS] Production Binary generated.
+ [FIXED] Translated to English: main.rs
+
+[DIRECTORY INVENTORY]:
+- .github ( bytes)
+- ffmpeg-8.0.1 ( bytes)
+- src ( bytes)
+- target ( bytes)
+- temp ( bytes)
+- video_output ( bytes)
+- build_factory.bat (703 bytes)
+- Cargo.lock (49406 bytes)
+- Cargo.toml (520 bytes)
+- LICENSE_COMMERCIAL.txt (1108 bytes)
+- README.md (4064 bytes)
+- TERMS_COMMUNITY.txt (609 bytes)
+- test.jpg (5621 bytes)
+- TEST_1_BUILD.txt (36 bytes)
+- VIDEO_PERFORMANCE_TEST.txt (321 bytes)
+
+============================================================
