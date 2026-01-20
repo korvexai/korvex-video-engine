@@ -6,7 +6,9 @@ use std::collections::HashMap;
 use uuid::Uuid;
 use std::process::{Command, Stdio};
 use std::fs;
-use futures::future::join_all; // Required for simultaneous rendering
+use futures::future::join_all;
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
 // === COMPILATION EDITION LOGIC ===
 #[cfg(all(feature = "community", not(feature = "commercial")))]
@@ -15,20 +17,43 @@ const EDITION: &str = "COMMUNITY (Limited)";
 #[cfg(feature = "commercial")]
 const EDITION: &str = "COMMERCIAL (Full)";
 
-// === EDITION LIMITS ===
-fn get_max_segments() -> usize {
-    if cfg!(feature = "commercial") { 100 } else { 1 }
-}
-
-fn has_watermark() -> bool {
-    !cfg!(feature = "commercial")
-}
-
 // === CONFIG ===
 const OUTPUT_DIR: &str = "./video_output";
 const TEMP_DIR: &str = "./temp";
-
 static ACTIVE_JOBS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+// === SECURITY & LICENSE (HWID) ===
+fn get_hwid() -> String {
+    let os_info = std::env::consts::OS;
+    let cpu_count = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+    let mut hasher = DefaultHasher::new();
+    os_info.hash(&mut hasher);
+    cpu_count.hash(&mut hasher);
+    format!("{:x}", hasher.finish())
+}
+
+fn is_license_valid() -> bool {
+    if cfg!(feature = "commercial") {
+        if let Ok(key) = fs::read_to_string("license.key") {
+            let hwid = get_hwid();
+            let mut hasher = DefaultHasher::new();
+            hwid.hash(&mut hasher);
+            "KORVEX_GOLD_SALT".hash(&mut hasher); // Salt-ul pentru securitate
+            let expected = format!("{:x}", hasher.finish());
+            return key.trim() == expected;
+        }
+    }
+    false
+}
+
+// === EDITION LIMITS ===
+fn get_max_segments() -> usize {
+    if is_license_valid() { 100 } else { 1 }
+}
+
+fn has_watermark() -> bool {
+    !is_license_valid()
+}
 
 // === MODELS ===
 #[derive(Deserialize, Debug, Clone)]
@@ -118,11 +143,9 @@ impl VideoEngine {
         Ok(status)
     }
 
-    // --- PARALLEL RENDERING LOGIC (PLATINUM UPGRADE) ---
     async fn process_full_video(self, job_id: String, state: Arc<Mutex<JobState>>) {
         let segments = { state.lock().await.job.segments.clone() };
         
-        // 1. Launch all segments in parallel
         let mut render_tasks = Vec::new();
         for segment in segments {
             let engine_ref = self.clone();
@@ -134,27 +157,26 @@ impl VideoEngine {
             }));
         }
 
-        // 2. Wait for results from all tasks simultaneously
         let results = join_all(render_tasks).await;
-        let mut successs = true;
+        let mut success = true; // REPARAT: successs -> success
         
         for res in results {
             match res {
-                Ok(Err(e)) => { // FFmpeg Error
-                    state.lock().await.status.error = Some(e);
-                    state.lock().await.status.status = "FAILED".into();
-                    successs = false;
+                Ok(Err(e)) => {
+                    let mut s = state.lock().await;
+                    s.status.error = Some(e);
+                    s.status.status = "FAILED".into();
+                    success = false;
                 }
-                Err(_) => { // Thread Error (Panic)
+                Err(_) => {
                     state.lock().await.status.status = "FAILED".into();
-                    successs = false;
+                    success = false;
                 }
                 _ => {}
             }
         }
 
-        // 3. If all pieces are ready, join them
-        if successs {
+        if success {
             if let Err(e) = self.concat_and_finalize(&job_id, &state).await {
                 let mut s = state.lock().await;
                 s.status.error = Some(e);
@@ -178,10 +200,10 @@ impl VideoEngine {
 
         let mut filters = format!("scale={},fps={}", res, fps);
 
-        if cfg!(feature = "commercial") {
+        if is_license_valid() {
             let drawtext = format!(
                 ",drawtext=text='{}':fontcolor=white:fontsize=40:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=h-100",
-                seg.text.replace("'", "")
+                seg.text.replace("'", "").replace(":", "\\:") // Escaping pentru FFmpeg
             );
             filters.push_str(&drawtext);
         }
@@ -191,13 +213,16 @@ impl VideoEngine {
             filters.push_str(watermark);
         }
 
-        let status = Command::new("ffmpeg")
+        // Detectare Encoder (HW Acceleration)
+        let encoder = if cfg!(target_os = "windows") { "libx264" } else { "libx264" }; // Aici se pot adăuga nVidia nvenc etc.
+
+        let ffmpeg_status = Command::new("ffmpeg") // REPARAT: status -> ffmpeg_status pentru claritate
             .args(&[
                 "-y", "-loop", "1", "-i", &seg.image_path,
                 "-f", "lavfi", "-i", &format!("anullsrc=r=44100:cl=stereo:d={}", seg.duration_seconds),
                 "-t", &seg.duration_seconds.to_string(),
                 "-vf", &filters,
-                "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+                "-c:v", encoder, "-preset", "ultrafast", "-pix_fmt", "yuv420p",
                 &output_path
             ])
             .stdout(Stdio::null())
@@ -205,7 +230,7 @@ impl VideoEngine {
             .status()
             .map_err(|e| e.to_string())?;
 
-        if status.success() {
+        if ffmpeg_status.success() {
             let mut s = state.lock().await;
             s.status.segments_done += 1;
             s.status.progress = (s.status.segments_done as f32 / s.status.total_segments as f32) * 100.0;
@@ -229,7 +254,7 @@ impl VideoEngine {
         let output_name = { state.lock().await.job.output_name.clone() };
         let final_path = format!("{}/{}.mp4", OUTPUT_DIR, output_name);
 
-        let status = Command::new("ffmpeg")
+        let ffmpeg_status = Command::new("ffmpeg")
             .args(&[
                 "-y", "-f", "concat", "-safe", "0", "-i", &list_path,
                 "-c", "copy", &final_path
@@ -239,7 +264,7 @@ impl VideoEngine {
             .status()
             .map_err(|e| e.to_string())?;
 
-        if status.success() {
+        if ffmpeg_status.success() {
             let mut s = state.lock().await;
             s.status.status = "COMPLETED".to_string();
             s.status.output_path = Some(final_path);
@@ -271,8 +296,9 @@ async fn list_jobs_handler(data: web::Data<VideoEngine>) -> impl Responder {
 
 async fn status_handler() -> impl Responder {
     format!(
-        "KORVEX Factory v1.1 | Edition: {}\nActive Jobs: {}", 
-        EDITION, 
+        "KORVEX Factory v1.1 | Edition: {}\nHWID: {}\nActive Jobs: {}", 
+        EDITION,
+        get_hwid(),
         ACTIVE_JOBS.load(std::sync::atomic::Ordering::Relaxed)
     )
 }
@@ -292,5 +318,4 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
-
 

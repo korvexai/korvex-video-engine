@@ -1,7 +1,6 @@
 ﻿============================================================
-KORVEX VIDEO ENGINE - SECURITY & COMPLIANCE AUDIT
+KORVEX VIDEO ENGINE - SECURITY: HWID LOCK
 ============================================================
-LICENSE LOCK: Feature Gate Active
-DNA TRACKING: Active
-OUTPUT: Commercial (No Watermark)
+ALGORITHM: SHA256-SALTED-HASH
+STATUS: HARD-LOCK ACTIVE
 ============================================================

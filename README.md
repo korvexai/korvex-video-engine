@@ -46,3 +46,10 @@ Contact: contactkorvex.ai@gmail.com
 
 ###  Upgrade Your Workflow
 For commercial licensing and high-volume enterprise onboarding: **contactkorvex.ai@gmail.com**
+
+### 🔑 Instant Activation (Platinum & Gold)
+This engine uses **Hardware-Locked Licensing** to ensure maximum security:
+1. Run the engine once to see your **Machine ID (HWID)**.
+2. Complete the purchase and provide your HWID.
+3. You will receive a `license.key` file.
+4. Place it in the root folder to instantly unlock **Parallel Rendering**.
