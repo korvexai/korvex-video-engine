@@ -1,7 +1,0 @@
-﻿============================================================
-KORVEX VIDEO ENGINE - PERFORMANCE CERTIFICATE
-Edition: COMMERCIAL (Full)
-Test: Parallel Segment Rendering (5 Segments HD)
-Result: Rendered and Finalized in 14.2 seconds
-Status: PLATINUM VERIFIED
-============================================================

@@ -1,0 +1,6 @@
+# 1. Curățăm resturile compilării eșuate
+cargo clean
+
+# 2. Compilăm Ediția Comercială
+Write-Host "🏗️ Compiling KORVEX Video Engine GOLD..." -ForegroundColor Cyan
+cargo build --release --features commercial

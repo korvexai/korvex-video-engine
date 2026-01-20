@@ -1,8 +1,0 @@
-﻿============================================================
-KORVEX VIDEO ENGINE - TEST 3: RENDER THROUGHPUT
-============================================================
-TEST LOAD: 5 HD Video Segments (1080p @ 30FPS)
-HARDWARE ACCELERATION: libx264 (Ultrafast Preset)
-TOTAL RENDER TIME: 14.2 Seconds
-THROUGHPUT: ~0.35s per output second (PRO GRADE)
-============================================================
