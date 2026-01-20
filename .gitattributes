@@ -1,0 +1,4 @@
+ffmpeg-8.0.1/* linguist-vendored
+target/* linguist-vendored
+video_output/* linguist-vendored
+temp/* linguist-vendored
